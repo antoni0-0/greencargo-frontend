@@ -2,6 +2,9 @@
 
 Sistema de gestión de envíos con seguimiento en tiempo real, optimización de rutas y panel administrativo.
 
+## Video explicación
+### Frontend GreenCargo: https://youtu.be/mBuY8nS-tus
+
 ## 🚀 Instalación y Configuración
 
 ### Prerrequisitos
