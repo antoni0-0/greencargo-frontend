@@ -2,7 +2,7 @@ export interface Usuario {
   id: number;
   nombre: string;
   email: string;
-  rol: 'cliente' | 'admin' | 'repartidor';
+  rol: 'cliente' | 'admin';
   fecha_registro: string;
 }
 
@@ -15,7 +15,7 @@ export interface RegisterRequest {
   nombre: string;
   email: string;
   password: string;
-  rol: 'cliente' | 'admin' | 'repartidor';
+  rol: 'cliente' | 'admin';
 }
 
 export interface AuthResponse {

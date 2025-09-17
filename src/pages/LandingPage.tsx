@@ -42,7 +42,6 @@ export const LandingPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-white">
-      {/* Header */}
       <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
@@ -76,7 +75,6 @@ export const LandingPage: React.FC = () => {
         </div>
       </header>
 
-      {/* Hero Section */}
       <section className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center">
@@ -109,7 +107,6 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Stats Section */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
@@ -125,7 +122,6 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Features Section */}
       <section id="features" className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
@@ -155,7 +151,6 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
       <section className="py-20 bg-green-600">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
@@ -174,7 +169,6 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="bg-gray-900 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-4 gap-8">
@@ -227,7 +221,6 @@ export const LandingPage: React.FC = () => {
         </div>
       </footer>
 
-      {/* Auth Modal */}
       {showAuth && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="relative">
@@ -246,7 +239,6 @@ export const LandingPage: React.FC = () => {
         </div>
       )}
 
-      {/* Toast Container */}
       <ToastContainer toasts={toasts} onClose={removeToast} />
     </div>
   );

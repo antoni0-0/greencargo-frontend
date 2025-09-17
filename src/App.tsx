@@ -4,6 +4,7 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { LandingPage } from './pages/LandingPage';
 import { Dashboard } from './pages/Dashboard';
 import { CrearEnvio } from './pages/CrearEnvio';
+import { AdminDashboard } from './pages/AdminDashboard';
 import './App.css';
 
 function App() {
@@ -26,6 +27,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <CrearEnvio />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin" 
+              element={
+                <ProtectedRoute>
+                  <AdminDashboard />
                 </ProtectedRoute>
               } 
             />

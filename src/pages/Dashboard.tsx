@@ -1,13 +1,113 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
-import { Package, Truck, MapPin, User, Plus } from 'lucide-react';
+import { ToastContainer } from '../components/ui/Toast';
+import { useToast } from '../hooks/useToast';
+import { ListaMisEnvios } from '../components/misEnvios/ListaMisEnvios';
+import { ModalHistorial } from '../components/misEnvios/ModalHistorial';
+import { envioService } from '../services/api';
+import { getWebSocketInstance, clearWebSocketInstance, EnvioWebSocket } from '../services/websocket';
+import { MiEnvio, WebSocketUpdate, WebSocketNotification } from '../types/misEnvios';
+import { Package, Truck, MapPin, User, Plus, Settings, RefreshCw } from 'lucide-react';
 
 export const Dashboard: React.FC = () => {
-  const { usuario, logout } = useAuth();
+  const { usuario, logout, token } = useAuth();
   const navigate = useNavigate();
+  const { toasts, removeToast, success, showError } = useToast();
+  
+  const [misEnvios, setMisEnvios] = useState<MiEnvio[]>([]);
+  const [loadingEnvios, setLoadingEnvios] = useState(false);
+  const [envioSeleccionado, setEnvioSeleccionado] = useState<MiEnvio | null>(null);
+  const [modalHistorialAbierto, setModalHistorialAbierto] = useState(false);
+
+  useEffect(() => {
+    if (usuario && token) {
+      cargarMisEnvios();
+      inicializarWebSocket();
+      solicitarPermisosNotificacion();
+    }
+    
+    return () => {
+      clearWebSocketInstance();
+    };
+  }, [usuario, token]);
+
+  const solicitarPermisosNotificacion = async () => {
+    try {
+      const granted = await EnvioWebSocket.requestNotificationPermission();
+      if (granted) {
+        console.log('Permisos de notificación concedidos');
+      } else {
+        console.log('Permisos de notificación denegados');
+      }
+    } catch (error) {
+      console.error('Error al solicitar permisos de notificación:', error);
+    }
+  };
+
+  const cargarMisEnvios = async () => {
+    setLoadingEnvios(true);
+    try {
+      const response = await envioService.obtenerMisEnvios();
+      
+      if (response.success) {
+        setMisEnvios(response.data);
+      }
+    } catch (error) {
+      console.error('Error al cargar mis envíos:', error);
+      showError('Error', 'No se pudieron cargar tus envíos');
+    } finally {
+      setLoadingEnvios(false);
+    }
+  };
+
+  const inicializarWebSocket = async () => {
+    if (!token) return;
+
+    try {
+      const ws = getWebSocketInstance(token);
+      if (ws) {
+        await ws.connect();
+        
+        ws.setNotificationCallback((notification: WebSocketNotification) => {
+          if (notification.tipo === 'envio_update') {
+            success('Actualización de Envío', notification.mensaje);
+            
+            EnvioWebSocket.showBrowserNotification(
+              'GreenCargo - Actualización de Envío',
+              notification.mensaje
+            );
+            
+            cargarMisEnvios();
+          }
+        });
+
+        misEnvios.forEach(envio => {
+          ws.subscribeToEnvio(envio.id, (update: WebSocketUpdate) => {
+            setMisEnvios(prev => prev.map(e => 
+              e.id === update.envioId 
+                ? { ...e, estado: update.estadoNuevo }
+                : e
+            ));
+          });
+        });
+      }
+    } catch (error) {
+      console.error('Error al conectar WebSocket:', error);
+    }
+  };
+
+  const handleVerHistorial = (envio: MiEnvio) => {
+    setEnvioSeleccionado(envio);
+    setModalHistorialAbierto(true);
+  };
+
+  const handleCerrarModal = () => {
+    setModalHistorialAbierto(false);
+    setEnvioSeleccionado(null);
+  };
 
   if (!usuario) {
     return <div>Cargando...</div>;
@@ -15,7 +115,6 @@ export const Dashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
@@ -39,7 +138,6 @@ export const Dashboard: React.FC = () => {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
@@ -51,7 +149,7 @@ export const Dashboard: React.FC = () => {
                 Gestiona tus envíos y accede a todas las funcionalidades de GreenCargo
               </p>
             </div>
-            <div className="mt-4 sm:mt-0">
+            <div className="mt-4 sm:mt-0 flex flex-col sm:flex-row gap-2">
               <Button
                 onClick={() => navigate('/crear-envio')}
                 className="flex items-center space-x-2"
@@ -59,11 +157,31 @@ export const Dashboard: React.FC = () => {
                 <Plus className="w-4 h-4" />
                 <span>Crear Envío</span>
               </Button>
+              
+              <Button
+                variant="outline"
+                onClick={cargarMisEnvios}
+                disabled={loadingEnvios}
+                className="flex items-center space-x-2"
+              >
+                <RefreshCw className={`w-4 h-4 ${loadingEnvios ? 'animate-spin' : ''}`} />
+                <span>Actualizar</span>
+              </Button>
+              
+              {usuario?.rol === 'admin' && (
+                <Button
+                  variant="outline"
+                  onClick={() => navigate('/admin')}
+                  className="flex items-center space-x-2"
+                >
+                  <Settings className="w-4 h-4" />
+                  <span>Panel Admin</span>
+                </Button>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card>
             <div className="flex items-center">
@@ -72,7 +190,7 @@ export const Dashboard: React.FC = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Envíos Totales</p>
-                <p className="text-2xl font-bold text-gray-900">24</p>
+                <p className="text-2xl font-bold text-gray-900">--</p>
               </div>
             </div>
           </Card>
@@ -84,7 +202,7 @@ export const Dashboard: React.FC = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">En Tránsito</p>
-                <p className="text-2xl font-bold text-gray-900">3</p>
+                <p className="text-2xl font-bold text-gray-900">--</p>
               </div>
             </div>
           </Card>
@@ -96,7 +214,7 @@ export const Dashboard: React.FC = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Entregados</p>
-                <p className="text-2xl font-bold text-gray-900">21</p>
+                <p className="text-2xl font-bold text-gray-900">--</p>
               </div>
             </div>
           </Card>
@@ -114,43 +232,22 @@ export const Dashboard: React.FC = () => {
           </Card>
         </div>
 
-        {/* Recent Activity */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <Card>
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              Envíos Recientes
-            </h2>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="font-medium text-gray-900">#GC-001</p>
-                  <p className="text-sm text-gray-600">Bogotá → Medellín</p>
-                </div>
-                <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
-                  Entregado
-                </span>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="font-medium text-gray-900">#GC-002</p>
-                  <p className="text-sm text-gray-600">Cali → Barranquilla</p>
-                </div>
-                <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
-                  En Tránsito
-                </span>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="font-medium text-gray-900">#GC-003</p>
-                  <p className="text-sm text-gray-600">Cartagena → Bucaramanga</p>
-                </div>
-                <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-                  Procesando
-                </span>
-              </div>
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">Mis Envíos</h2>
+            <div className="text-sm text-gray-600">
+              {misEnvios.length} envío{misEnvios.length !== 1 ? 's' : ''}
             </div>
-          </Card>
+          </div>
+          
+          <ListaMisEnvios
+            envios={misEnvios}
+            loading={loadingEnvios}
+            onVerHistorial={handleVerHistorial}
+          />
+        </div>
 
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <Card>
             <h2 className="text-xl font-semibold text-gray-900 mb-4">
               Información del Usuario
@@ -178,6 +275,15 @@ export const Dashboard: React.FC = () => {
           </Card>
         </div>
       </main>
+
+      <ModalHistorial
+        envio={envioSeleccionado}
+        isOpen={modalHistorialAbierto}
+        onClose={handleCerrarModal}
+        onErrorToast={showError}
+      />
+
+      <ToastContainer toasts={toasts} onClose={removeToast} />
     </div>
   );
 };

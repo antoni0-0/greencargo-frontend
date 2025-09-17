@@ -10,8 +10,7 @@ export const CrearEnvio: React.FC = () => {
   const navigate = useNavigate();
   const { toasts, removeToast, success, showError } = useToast();
 
-  const handleSuccess = (envio: any) => {
-    // Redirigir al dashboard después de crear el envío exitosamente
+  const handleSuccess = () => {
     setTimeout(() => {
       navigate('/dashboard');
     }, 2000);
@@ -23,7 +22,6 @@ export const CrearEnvio: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between py-4">
@@ -48,7 +46,6 @@ export const CrearEnvio: React.FC = () => {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
@@ -72,7 +69,6 @@ export const CrearEnvio: React.FC = () => {
           </div>
         </div>
 
-        {/* Formulario de Envío */}
         <EnvioForm 
           onSuccess={handleSuccess} 
           onCancel={handleCancel}
@@ -81,7 +77,6 @@ export const CrearEnvio: React.FC = () => {
         />
       </main>
 
-      {/* Toast Container */}
       <ToastContainer toasts={toasts} onClose={removeToast} />
     </div>
   );

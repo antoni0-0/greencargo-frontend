@@ -127,13 +127,13 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) =
             Tipo de cuenta
           </label>
           <select
+            disabled
             name="rol"
             value={formData.rol}
             onChange={handleChange}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
           >
             <option value="cliente">Cliente</option>
-            <option value="repartidor">Repartidor</option>
           </select>
         </div>
 
