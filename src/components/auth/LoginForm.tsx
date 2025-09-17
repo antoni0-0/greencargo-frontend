@@ -62,6 +62,10 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
+    
+    if (errors.general) {
+      setErrors(prev => ({ ...prev, general: '' }));
+    }
   };
 
   return (

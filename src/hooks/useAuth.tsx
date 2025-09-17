@@ -51,8 +51,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         
         navigate('/dashboard');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error en login:', error);
+      
+      if (error.response?.status === 401) {
+        setToken(null);
+        setUsuario(null);
+        localStorage.removeItem('token');
+        localStorage.removeItem('usuario');
+      }
+      
       throw error;
     } finally {
       setLoading(false);
